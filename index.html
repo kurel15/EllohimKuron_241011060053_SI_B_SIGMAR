@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="id">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Peta Desa Tounelet - Dark Mode Ready</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <link rel="stylesheet" href="css/leaflet.css">
+    
+    <style>
+        :root {
+            --bg-header: rgba(255, 255, 255, 0.9);
+            --text-color: #2c3e50;
+            --accent: #667eea;
+            --sidebar-bg: #ffffff;
+        }
+
+        /* Dark Mode variables */
+        body.dark-mode {
+            --bg-header: rgba(30, 41, 59, 0.9);
+            --text-color: #f1f5f9;
+            --accent: #818cf8;
+            --sidebar-bg: #0f172a;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Poppins', sans-serif; transition: 0.3s; }
+        
+        #map { width: 100%; height: 100vh; z-index: 1; background: #ddd; }
+
+        /* UI Elements */
+        .header {
+            position: fixed; top: 0; left: 0; right: 0;
+            background: var(--bg-header); backdrop-filter: blur(10px);
+            z-index: 1100; padding: 0.8rem 1.5rem;
+            display: flex; justify-content: space-between; align-items: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            color: var(--text-color);
+        }
+
+        .sidebar {
+            position: fixed; left: 20px; top: 80px; width: 300px;
+            background: var(--sidebar-bg); z-index: 1000;
+            padding: 1.5rem; border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            color: var(--text-color);
+            transition: 0.3s;
+        }
+
+        .dark-mode-toggle {
+            background: var(--accent); color: white;
+            border: none; padding: 8px 15px; border-radius: 20px;
+            cursor: pointer; font-weight: 600; font-size: 0.8rem;
+            display: flex; align-items: center; gap: 8px;
+        }
+
+        .description { font-size: 0.85rem; line-height: 1.5; margin-top: 10px; }
+        
+        .loading {
+            position: fixed; inset: 0; background: #667eea;
+            display: flex; flex-direction: column; align-items: center;
+            justify-content: center; z-index: 2000; transition: 0.5s;
+        }
+
+        /* Leaflet Dark Mode Filter */
+        .dark-mode .leaflet-tile-pane { filter: brightness(0.6) invert(1) contrast(3) hue-rotate(200deg) saturate(0.3); }
+    </style>
+</head>
+<body class="">
+
+    <div class="loading" id="loading">
+        <div style="color: white; font-weight: 600;">Memuat Peta Desa...</div>
+    </div>
+
+    <header class="header">
+        <div style="font-weight: 700;">📍 Tounelet Map</div>
+        <div style="display: flex; align-items: center; gap: 15px;">
+            <div style="text-align: right; line-height: 1.2;">
+                <p style="font-size: 0.8rem; font-weight: 600;">Ellohim Milano Kuron</p>
+                <p style="font-size: 0.65rem; opacity: 0.7;">241011060053</p>
+            </div>
+            <button class="dark-mode-toggle" onclick="toggleDarkMode()">
+                <i class="fas fa-moon"></i> <span>Mode Gelap</span>
+            </button>
+        </div>
+    </header>
+
+    <div class="sidebar">
+        <h3 style="color: var(--accent);">📖 Deskripsi Singkat</h3>
+        <p class="description">
+            <strong>Desa Tounelet</strong> terletak di Kecamatan Langowan, Minahasa. 
+            Desa ini merupakan wilayah penting dengan karakteristik masyarakat agraris dan budaya Minahasa yang kuat.
+        </p>
+        <hr style="margin: 15px 0; opacity: 0.2;">
+        <p style="font-size: 0.75rem; opacity: 0.8;">
+            <i class="fas fa-info-circle"></i> Klik pada area berwarna merah untuk melihat detail atribut wilayah desa.
+        </p>
+    </div>
+
+    <div id="map"></div>
+
+    <script src="js/leaflet.js"></script>
+    <script src="data/Batas_Wilayah_KelurahanDesa_10K_AR_1.js"></script>
+
+    <script>
+        // Inisialisasi Map
+        var map = L.map('map', { zoomControl: false }).setView([1.15, 124.84], 14);
+
+        // Gunakan CartoDB (Lebih aman dari blokir)
+        var baseLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+            attribution: '© CARTO'
+        }).addTo(map);
+
+        // Load Data GeoJSON
+        var dataPeta;
+        if (typeof json_Batas_Wilayah_KelurahanDesa_10K_AR_1 !== 'undefined') {
+            dataPeta = json_Batas_Wilayah_KelurahanDesa_10K_AR_1;
+        } else if (typeof json_Batas_Wilayah_KelurahanDesa_10K_AR_1_0 !== 'undefined') {
+            dataPeta = json_Batas_Wilayah_KelurahanDesa_10K_AR_1_0;
+        }
+
+        if (dataPeta) {
+            var layer = L.geoJson(dataPeta, {
+                style: { color: '#e41a1c', weight: 2, fillOpacity: 0.3 },
+                onEachFeature: function(feature, layer) {
+                    layer.bindPopup("<b>Desa: </b>" + (feature.properties.NAMOBJ || "Tounelet"));
+                }
+            }).addTo(map);
+            map.fitBounds(layer.getBounds());
+        }
+
+        // Fungsi Dark Mode
+        function toggleDarkMode() {
+            const body = document.body;
+            const btn = document.querySelector('.dark-mode-toggle span');
+            const icon = document.querySelector('.dark-mode-toggle i');
+            
+            body.classList.toggle('dark-mode');
+            
+            if(body.classList.contains('dark-mode')) {
+                btn.innerText = "Mode Terang";
+                icon.className = "fas fa-sun";
+                // Ganti tile ke versi dark (opsional, filter CSS di atas sudah cukup keren)
+            } else {
+                btn.innerText = "Mode Gelap";
+                icon.className = "fas fa-moon";
+            }
+        }
+
+        // Loading Timeout
+        window.onload = () => {
+            setTimeout(() => {
+                document.getElementById('loading').style.opacity = '0';
+                setTimeout(() => document.getElementById('loading').remove(), 500);
+            }, 800);
+        };
+
+        L.control.zoom({ position: 'bottomright' }).addTo(map);
+    </script>
+</body>
+</html>
