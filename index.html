@@ -2,8 +2,8 @@
 <html lang="id">
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Peta Desa Tounelet - Dark Mode Ready</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Peta Tounelet - Responsive Edition</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -12,91 +12,143 @@
     
     <style>
         :root {
-            --bg-header: rgba(255, 255, 255, 0.9);
+            --bg-header: rgba(255, 255, 255, 0.98);
             --text-color: #2c3e50;
             --accent: #667eea;
             --sidebar-bg: #ffffff;
         }
 
-        /* Dark Mode variables */
         body.dark-mode {
-            --bg-header: rgba(30, 41, 59, 0.9);
+            --bg-header: rgba(15, 23, 42, 0.98);
             --text-color: #f1f5f9;
             --accent: #818cf8;
-            --sidebar-bg: #0f172a;
+            --sidebar-bg: #1e293b;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Poppins', sans-serif; transition: 0.3s; }
+        body { font-family: 'Poppins', sans-serif; transition: 0.3s; background: #f1f5f9; height: 100vh; overflow: hidden; }
         
-        #map { width: 100%; height: 100vh; z-index: 1; background: #ddd; }
+        #map { width: 100%; height: 100vh; z-index: 1; }
 
-        /* UI Elements */
+        /* Header UI - Responsive */
         .header {
             position: fixed; top: 0; left: 0; right: 0;
             background: var(--bg-header); backdrop-filter: blur(10px);
-            z-index: 1100; padding: 0.8rem 1.5rem;
+            z-index: 1100; padding: 0.6rem 1rem;
             display: flex; justify-content: space-between; align-items: center;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            color: var(--text-color);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1); color: var(--text-color);
         }
 
+        /* Sidebar - Desktop Default */
         .sidebar {
-            position: fixed; left: 20px; top: 80px; width: 300px;
-            background: var(--sidebar-bg); z-index: 1000;
-            padding: 1.5rem; border-radius: 15px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-            color: var(--text-color);
-            transition: 0.3s;
+            position: fixed; left: 20px; top: 80px; width: 320px;
+            background: var(--sidebar-bg); z-index: 1050;
+            padding: 1.5rem; border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15); color: var(--text-color);
+            transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            max-height: calc(100vh - 100px); overflow-y: auto;
         }
 
-        .dark-mode-toggle {
-            background: var(--accent); color: white;
-            border: none; padding: 8px 15px; border-radius: 20px;
-            cursor: pointer; font-weight: 600; font-size: 0.8rem;
-            display: flex; align-items: center; gap: 8px;
+        /* Responsive Mobile Adjustments */
+        @media (max-width: 768px) {
+            .header h1 { font-size: 0.85rem; }
+            .header p { display: none; } /* Sembunyikan sub-title di HP */
+            
+            .sidebar {
+                left: 0; right: 0; bottom: -100%; top: auto;
+                width: 100%; border-radius: 25px 25px 0 0;
+                padding: 1.2rem; max-height: 60vh;
+            }
+            .sidebar.active { bottom: 0; }
+            
+            .control-btn span { display: none; } /* Sembunyikan teks tombol di HP, sisa ikon saja */
+            .control-btn { padding: 10px; border-radius: 50%; width: 42px; height: 42px; justify-content: center; }
         }
 
-        .description { font-size: 0.85rem; line-height: 1.5; margin-top: 10px; }
-        
+        /* Buttons Group */
+        .btn-group { display: flex; gap: 8px; }
+        .control-btn {
+            background: var(--accent); color: white; border: none;
+            padding: 8px 15px; border-radius: 20px; cursor: pointer;
+            font-weight: 600; font-size: 0.75rem; display: flex; align-items: center; gap: 6px;
+        }
+
+        /* Weather UI */
+        #weather-widget {
+            background: linear-gradient(135deg, var(--accent), #764ba2);
+            color: white; padding: 15px; border-radius: 15px; margin-bottom: 15px; text-align: center;
+        }
+
+        /* Loading Screen */
         .loading {
             position: fixed; inset: 0; background: #667eea;
             display: flex; flex-direction: column; align-items: center;
             justify-content: center; z-index: 2000; transition: 0.5s;
         }
 
-        /* Leaflet Dark Mode Filter */
+        /* Dark Mode Filter */
         .dark-mode .leaflet-tile-pane { filter: brightness(0.6) invert(1) contrast(3) hue-rotate(200deg) saturate(0.3); }
+        
+        /* Toggle Sidebar Button (Mobile Only) */
+        #mobileToggle {
+            display: none; position: fixed; bottom: 20px; left: 50%;
+            transform: translateX(-50%); z-index: 1060;
+            background: var(--accent); color: white; border: none;
+            padding: 12px 25px; border-radius: 30px; font-weight: 600;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+        }
+        @media (max-width: 768px) { #mobileToggle { display: block; } }
     </style>
 </head>
-<body class="">
+<body>
 
     <div class="loading" id="loading">
-        <div style="color: white; font-weight: 600;">Memuat Peta Desa...</div>
+        <i class="fas fa-circle-notch fa-spin fa-3x" style="color: white;"></i>
+        <p style="color: white; margin-top: 15px; font-weight: 500;">LOADING PETA...</p>
     </div>
 
     <header class="header">
-        <div style="font-weight: 700;">📍 Tounelet Map</div>
-        <div style="display: flex; align-items: center; gap: 15px;">
-            <div style="text-align: right; line-height: 1.2;">
-                <p style="font-size: 0.8rem; font-weight: 600;">Ellohim Milano Kuron</p>
-                <p style="font-size: 0.65rem; opacity: 0.7;">241011060053</p>
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <i class="fas fa-map-marked-alt" style="color: var(--accent); font-size: 1.3rem;"></i>
+            <div>
+                <h1 style="font-size: 0.9rem;">Tounelet Map</h1>
+                <p style="font-size: 0.6rem; opacity: 0.7;">Project SIG Ellohim</p>
             </div>
-            <button class="dark-mode-toggle" onclick="toggleDarkMode()">
-                <i class="fas fa-moon"></i> <span>Mode Gelap</span>
+        </div>
+
+        <div class="btn-group">
+            <audio id="bgMusic" loop><source src="musik/bg-music.mp3" type="audio/mpeg"></audio>
+            <button class="control-btn" id="musicBtn" onclick="toggleMusic()" style="background: #27ae60;">
+                <i class="fas fa-play"></i> <span>Musik</span>
+            </button>
+            <button class="control-btn" onclick="toggleDarkMode()">
+                <i class="fas fa-moon"></i> <span>Mode</span>
             </button>
         </div>
     </header>
 
-    <div class="sidebar">
-        <h3 style="color: var(--accent);">📖 Deskripsi Singkat</h3>
-        <p class="description">
-            <strong>Desa Tounelet</strong> terletak di Kecamatan Langowan, Minahasa. 
-            Desa ini merupakan wilayah penting dengan karakteristik masyarakat agraris dan budaya Minahasa yang kuat.
+    <button id="mobileToggle" onclick="toggleSidebar()">
+        <i class="fas fa-info-circle"></i> Info Desa
+    </button>
+
+    <div class="sidebar" id="sidebar">
+        <div id="weather-widget">
+            <div id="weather-icon"></div>
+            <div id="temp" style="font-size: 1.8rem; font-weight: 700;">--°C</div>
+            <div id="weather-desc" style="font-size: 0.75rem; text-transform: capitalize; opacity: 0.9;">Memuat...</div>
+        </div>
+
+        <h3 style="font-size: 0.9rem; margin-bottom: 8px;">📖 Deskripsi</h3>
+        <p style="font-size: 0.75rem; line-height: 1.5; opacity: 0.9; text-align: justify;">
+            <strong>Desa Tounelet</strong> berdiri sejak 1830. Nama aslinya <i>"TW"</i> (Orang Lewat). 
+            Luas wilayah 2,44 km² dengan potensi padi & cabai yang melimpah.
         </p>
-        <hr style="margin: 15px 0; opacity: 0.2;">
-        <p style="font-size: 0.75rem; opacity: 0.8;">
-            <i class="fas fa-info-circle"></i> Klik pada area berwarna merah untuk melihat detail atribut wilayah desa.
+        
+        <hr style="margin: 15px 0; border: 0; border-top: 1px solid rgba(0,0,0,0.1);">
+        
+        <p style="font-size: 0.7rem; color: #7f8c8d;">
+            <b>Ellohim Milano Kuron</b><br>
+            241011060053 | SI B UNSRAT
         </p>
     </div>
 
@@ -106,57 +158,82 @@
     <script src="data/Batas_Wilayah_KelurahanDesa_10K_AR_1.js"></script>
 
     <script>
-        // Inisialisasi Map
-        var map = L.map('map', { zoomControl: false }).setView([1.15, 124.84], 14);
+        // 1. Peta Setup
+        var map = L.map('map', { zoomControl: false, tap: false }).setView([1.1495, 124.8430], 14);
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png').addTo(map);
 
-        // Gunakan CartoDB (Lebih aman dari blokir)
-        var baseLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-            attribution: '© CARTO'
-        }).addTo(map);
-
-        // Load Data GeoJSON
-        var dataPeta;
-        if (typeof json_Batas_Wilayah_KelurahanDesa_10K_AR_1 !== 'undefined') {
-            dataPeta = json_Batas_Wilayah_KelurahanDesa_10K_AR_1;
-        } else if (typeof json_Batas_Wilayah_KelurahanDesa_10K_AR_1_0 !== 'undefined') {
-            dataPeta = json_Batas_Wilayah_KelurahanDesa_10K_AR_1_0;
+        // 2. Fast Loading
+        function hideLoading() {
+            const loader = document.getElementById('loading');
+            if (loader) { loader.style.opacity = '0'; setTimeout(() => loader.remove(), 500); }
         }
+        map.whenReady(hideLoading);
+        setTimeout(hideLoading, 3000);
+
+        // 3. Data GeoJSON
+        var dataPeta = typeof json_Batas_Wilayah_KelurahanDesa_10K_AR_1 !== 'undefined' ? 
+                       json_Batas_Wilayah_KelurahanDesa_10K_AR_1 : json_Batas_Wilayah_KelurahanDesa_10K_AR_1_0;
 
         if (dataPeta) {
             var layer = L.geoJson(dataPeta, {
-                style: { color: '#e41a1c', weight: 2, fillOpacity: 0.3 },
-                onEachFeature: function(feature, layer) {
-                    layer.bindPopup("<b>Desa: </b>" + (feature.properties.NAMOBJ || "Tounelet"));
+                style: { color: '#e41a1c', weight: 2, fillOpacity: 0.2 },
+                onEachFeature: function(f, l) {
+                    l.bindPopup("<b>Wilayah: </b>" + (f.properties.NAMOBJ || "Tounelet"));
                 }
             }).addTo(map);
             map.fitBounds(layer.getBounds());
         }
 
-        // Fungsi Dark Mode
-        function toggleDarkMode() {
-            const body = document.body;
-            const btn = document.querySelector('.dark-mode-toggle span');
-            const icon = document.querySelector('.dark-mode-toggle i');
-            
-            body.classList.toggle('dark-mode');
-            
-            if(body.classList.contains('dark-mode')) {
-                btn.innerText = "Mode Terang";
-                icon.className = "fas fa-sun";
-                // Ganti tile ke versi dark (opsional, filter CSS di atas sudah cukup keren)
-            } else {
-                btn.innerText = "Mode Gelap";
-                icon.className = "fas fa-moon";
-            }
+        // 4. Weather API (Real-time)
+        async function fetchWeather() {
+            const key = "5b3b26832571aacc5fdbc7e6393c2fbe"; 
+            try {
+                const res = await fetch(`https://api.openweathermap.org/data/2.5/weather?lat=1.15&lon=124.84&appid=${key}&units=metric&lang=id`);
+                const data = await res.json();
+                document.getElementById('temp').innerText = Math.round(data.main.temp) + "°C";
+                document.getElementById('weather-desc').innerText = data.weather[0].description;
+                document.getElementById('weather-icon').innerHTML = `<img src="http://openweathermap.org/img/wn/${data.weather[0].icon}@2x.png" width="45">`;
+            } catch (e) { console.log(e); }
+        }
+        fetchWeather();
+
+        // 5. Video Marker
+        var videoIcon = L.divIcon({
+            html: '<i class="fas fa-video fa-2x" style="color: #e67e22; text-shadow: 2px 2px white;"></i>',
+            iconSize: [30, 30]
+        });
+        L.marker([1.1495, 124.8430], {icon: videoIcon}).addTo(map)
+            .bindPopup(`
+                <div style="width: 200px; text-align: center;">
+                    <p style="font-weight: 600; font-size: 0.8rem; margin-bottom: 8px;">Video Profil Desa</p>
+                    <a href="https://youtu.be/BUuE0y4f52c" target="_blank">
+                        <img src="https://i.ytimg.com/vi/BUuE0y4f52c/mqdefault.jpg" style="width:100%; border-radius:8px;">
+                    </a>
+                    <p style="font-size:0.65rem; margin-top:5px;">Klik untuk ke YouTube</p>
+                </div>
+            `);
+
+        // 6. UI Controls
+        function toggleDarkMode() { document.body.classList.toggle('dark-mode'); }
+        
+        function toggleSidebar() { 
+            const sb = document.getElementById('sidebar');
+            sb.classList.toggle('active');
+            const btn = document.getElementById('mobileToggle');
+            btn.innerHTML = sb.classList.contains('active') ? '<i class="fas fa-times"></i> Tutup' : '<i class="fas fa-info-circle"></i> Info Desa';
         }
 
-        // Loading Timeout
-        window.onload = () => {
-            setTimeout(() => {
-                document.getElementById('loading').style.opacity = '0';
-                setTimeout(() => document.getElementById('loading').remove(), 500);
-            }, 800);
-        };
+        function toggleMusic() {
+            var m = document.getElementById("bgMusic");
+            var btn = document.querySelector("#musicBtn");
+            if (m.paused) {
+                m.play().catch(() => alert("Klik layar dulu baru tekan musik."));
+                btn.innerHTML = '<i class="fas fa-volume-up"></i> <span>Mute</span>';
+            } else {
+                m.pause();
+                btn.innerHTML = '<i class="fas fa-play"></i> <span>Musik</span>';
+            }
+        }
 
         L.control.zoom({ position: 'bottomright' }).addTo(map);
     </script>
