@@ -3,239 +3,587 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Peta Tounelet - Responsive Edition</title>
+    <title>Sistem Informasi Geografis - Desa Tounelet</title>
     
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     
-    <link rel="stylesheet" href="css/leaflet.css">
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
     
+    <!-- ==========================================
+         SECTION: CSS (STYLING)
+         ========================================== -->
     <style>
         :root {
-            --bg-header: rgba(255, 255, 255, 0.98);
-            --text-color: #2c3e50;
-            --accent: #667eea;
-            --sidebar-bg: #ffffff;
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --primary-gradient: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+            --bg-body: #f8fafc;
+            --surface: rgba(255, 255, 255, 0.95);
+            --border: rgba(226, 232, 240, 0.8);
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --sidebar-width: 420px;
+            --radius-xl: 2rem;
+            --radius-lg: 1.25rem;
+            --shadow-soft: 0 10px 30px -5px rgba(0, 0, 0, 0.05);
+            --shadow-strong: 0 20px 40px -10px rgba(0,0,0,0.1);
+            
+            /* Category Colors */
+            --cat-church: #6366f1;
+            --cat-pharmacy: #10b981;
+            --cat-cemetery: #475569;
+            --cat-market: #f59e0b;
+            --cat-school: #ec4899;
+            --cat-historical: #ef4444;
         }
 
         body.dark-mode {
-            --bg-header: rgba(15, 23, 42, 0.98);
-            --text-color: #f1f5f9;
-            --accent: #818cf8;
-            --sidebar-bg: #1e293b;
+            --bg-body: #020617;
+            --surface: rgba(15, 23, 42, 0.95);
+            --border: rgba(30, 41, 59, 0.7);
+            --text-main: #f1f5f9;
+            --text-muted: #94a3b8;
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Poppins', sans-serif; transition: 0.3s; background: #f1f5f9; height: 100vh; overflow: hidden; }
+        * { margin: 0; padding: 0; box-sizing: border-box; scroll-behavior: smooth; }
         
-        #map { width: 100%; height: 100vh; z-index: 1; }
-
-        /* Header UI - Responsive */
-        .header {
-            position: fixed; top: 0; left: 0; right: 0;
-            background: var(--bg-header); backdrop-filter: blur(10px);
-            z-index: 1100; padding: 0.6rem 1rem;
-            display: flex; justify-content: space-between; align-items: center;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1); color: var(--text-color);
-        }
-
-        /* Sidebar - Desktop Default */
-        .sidebar {
-            position: fixed; left: 20px; top: 80px; width: 320px;
-            background: var(--sidebar-bg); z-index: 1050;
-            padding: 1.5rem; border-radius: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.15); color: var(--text-color);
-            transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            max-height: calc(100vh - 100px); overflow-y: auto;
-        }
-
-        /* Responsive Mobile Adjustments */
-        @media (max-width: 768px) {
-            .header h1 { font-size: 0.85rem; }
-            .header p { display: none; } /* Sembunyikan sub-title di HP */
-            
-            .sidebar {
-                left: 0; right: 0; bottom: -100%; top: auto;
-                width: 100%; border-radius: 25px 25px 0 0;
-                padding: 1.2rem; max-height: 60vh;
-            }
-            .sidebar.active { bottom: 0; }
-            
-            .control-btn span { display: none; } /* Sembunyikan teks tombol di HP, sisa ikon saja */
-            .control-btn { padding: 10px; border-radius: 50%; width: 42px; height: 42px; justify-content: center; }
-        }
-
-        /* Buttons Group */
-        .btn-group { display: flex; gap: 8px; }
-        .control-btn {
-            background: var(--accent); color: white; border: none;
-            padding: 8px 15px; border-radius: 20px; cursor: pointer;
-            font-weight: 600; font-size: 0.75rem; display: flex; align-items: center; gap: 6px;
-        }
-
-        /* Weather UI */
-        #weather-widget {
-            background: linear-gradient(135deg, var(--accent), #764ba2);
-            color: white; padding: 15px; border-radius: 15px; margin-bottom: 15px; text-align: center;
+        body { 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+            background: var(--bg-body); 
+            color: var(--text-main);
+            transition: all 0.4s ease;
+            height: 100vh; 
+            overflow: hidden; 
         }
 
         /* Loading Screen */
-        .loading {
-            position: fixed; inset: 0; background: #667eea;
-            display: flex; flex-direction: column; align-items: center;
-            justify-content: center; z-index: 2000; transition: 0.5s;
+        .loader-wrapper {
+            position: fixed; inset: 0; 
+            background: var(--primary-gradient); 
+            z-index: 9999; display: flex; flex-direction: column; 
+            align-items: center; justify-content: center;
+            transition: opacity 0.8s ease, visibility 0.8s;
+        }
+        .loader-wrapper.fade-out { opacity: 0; visibility: hidden; }
+        .loader-logo {
+            width: 100px; height: 100px; background: white;
+            border-radius: 30px; display: flex; align-items: center;
+            justify-content: center; font-size: 3rem; color: var(--primary-dark);
+            box-shadow: 0 25px 50px rgba(0,0,0,0.3);
+            animation: pulse 2s infinite ease-in-out;
         }
 
-        /* Dark Mode Filter */
-        .dark-mode .leaflet-tile-pane { filter: brightness(0.6) invert(1) contrast(3) hue-rotate(200deg) saturate(0.3); }
-        
-        /* Toggle Sidebar Button (Mobile Only) */
-        #mobileToggle {
-            display: none; position: fixed; bottom: 20px; left: 50%;
-            transform: translateX(-50%); z-index: 1060;
-            background: var(--accent); color: white; border: none;
-            padding: 12px 25px; border-radius: 30px; font-weight: 600;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
+
+        #map { width: 100%; height: 100vh; z-index: 1; filter: grayscale(5%) contrast(105%); }
+
+        .main-header {
+            position: fixed; top: 1.5rem; left: 1.5rem; right: 1.5rem;
+            height: 85px; padding: 0 2rem;
+            background: var(--surface);
+            backdrop-filter: blur(20px);
+            z-index: 1000; display: flex; justify-content: space-between; align-items: center;
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow-strong);
         }
-        @media (max-width: 768px) { #mobileToggle { display: block; } }
+
+        .brand { display: flex; align-items: center; gap: 1.25rem; }
+        .brand-icon {
+            width: 48px; height: 48px; background: var(--primary-gradient);
+            display: flex; align-items: center; justify-content: center;
+            border-radius: 14px; color: white; font-size: 1.5rem;
+            box-shadow: 0 8px 15px rgba(99, 102, 241, 0.3);
+        }
+        .brand-text h1 { font-size: 1.25rem; font-weight: 800; letter-spacing: -0.5px; }
+        .brand-text p { font-size: 0.75rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 1px; }
+
+        .layer-switcher {
+            display: flex; background: rgba(0,0,0,0.05); padding: 5px; border-radius: 14px;
+        }
+        body.dark-mode .layer-switcher { background: rgba(255,255,255,0.05); }
+
+        .layer-btn {
+            padding: 8px 16px; border: none; background: transparent; color: var(--text-muted);
+            cursor: pointer; font-size: 0.75rem; font-weight: 700; border-radius: 10px;
+            display: flex; align-items: center; gap: 6px; transition: all 0.2s;
+        }
+        .layer-btn.active { background: white; color: var(--primary-dark); box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+
+        .actions { display: flex; align-items: center; gap: 0.75rem; }
+        .icon-btn {
+            width: 42px; height: 42px; border-radius: 12px;
+            background: var(--surface); border: 1px solid var(--border);
+            color: var(--text-main); cursor: pointer; display: flex; align-items: center; justify-content: center;
+            transition: all 0.3s ease; font-size: 1.1rem;
+        }
+        .icon-btn:hover { background: var(--primary-dark); color: white; transform: translateY(-2px); }
+        .icon-btn.active { background: var(--primary-dark); color: white; }
+
+        .sidebar {
+            position: fixed; left: 1.5rem; top: 8.5rem; width: var(--sidebar-width);
+            background: var(--surface); backdrop-filter: blur(24px);
+            z-index: 999; padding: 2rem; border-radius: var(--radius-xl);
+            border: 1px solid var(--border); box-shadow: var(--shadow-strong);
+            max-height: calc(100vh - 10.5rem); overflow-y: auto;
+            scrollbar-width: none;
+        }
+        .sidebar::-webkit-scrollbar { display: none; }
+
+        .section-title {
+            font-size: 0.7rem; font-weight: 800; color: var(--primary-dark);
+            text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 1rem;
+            display: flex; align-items: center; gap: 8px;
+        }
+
+        .weather-widget {
+            background: var(--primary-gradient); color: white; padding: 1.5rem;
+            border-radius: var(--radius-lg); margin-bottom: 2rem;
+            position: relative; overflow: hidden;
+        }
+
+        /* Video Profile Link Component */
+        .video-action-card {
+            background: #ff000008;
+            border: 1px solid #ff000030;
+            padding: 1.25rem;
+            border-radius: var(--radius-lg);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            margin-bottom: 1rem;
+        }
+        .video-action-card:hover {
+            background: #ff000015;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px -5px rgba(255, 0, 0, 0.15);
+            border-color: #ff0000;
+        }
+        .video-play-icon {
+            width: 45px; height: 45px; background: #ff0000;
+            border-radius: 12px; display: flex; align-items: center; justify-content: center;
+            color: white; font-size: 1.2rem;
+        }
+        .video-action-info h4 { font-size: 0.85rem; font-weight: 800; color: #cc0000; margin-bottom: 2px; }
+        .video-action-info p { font-size: 0.65rem; color: var(--text-muted); font-weight: 600; }
+
+        /* Category Filter Tags */
+        .category-filter-container {
+            display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 2rem;
+        }
+        .cat-tag {
+            padding: 10px 14px; border-radius: 14px; font-size: 0.7rem; font-weight: 700;
+            cursor: pointer; border: 1px solid var(--border);
+            background: white; color: var(--text-muted); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex; align-items: center; gap: 8px;
+        }
+        body.dark-mode .cat-tag { background: rgba(255,255,255,0.03); }
+        .cat-tag:hover { border-color: var(--primary); color: var(--primary); transform: translateY(-2px); }
+        .cat-tag.active { 
+            background: var(--primary-dark); color: white; border-color: var(--primary-dark);
+            box-shadow: 0 10px 20px -5px rgba(99, 102, 241, 0.4);
+        }
+
+        /* Copyright Container */
+        .copyright-container { 
+            text-align: center; 
+            margin-bottom: 2rem; 
+            padding: 1rem; 
+            background: rgba(99, 102, 241, 0.05);
+            border-radius: var(--radius-lg);
+            border: 1px dashed var(--primary-dark);
+        }
+        .copyright-text { 
+            font-size: 0.7rem; color: var(--primary-dark); font-weight: 800; 
+            text-transform: uppercase; letter-spacing: 1px; line-height: 1.5;
+        }
+
+        /* Identity Card Upgrade */
+        .identity-card {
+            background: var(--primary-gradient);
+            padding: 1.5rem; border-radius: var(--radius-lg); margin-top: 2rem;
+            display: flex; align-items: center; gap: 1rem;
+            box-shadow: 0 10px 25px -5px rgba(99, 102, 241, 0.4);
+            color: white;
+            border: none;
+        }
+        .identity-avatar {
+            width: 55px; height: 55px; background: white;
+            border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            color: var(--primary-dark); font-weight: 900; font-size: 1.4rem;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+        .identity-info h4 { font-size: 1rem; font-weight: 800; color: white; margin-bottom: 2px; }
+        .identity-info p { font-size: 0.85rem; font-weight: 700; color: white; opacity: 0.9; }
+
+        /* List Items */
+        .list-item {
+            padding: 1.25rem; border-radius: var(--radius-lg); margin-bottom: 0.75rem;
+            background: white; border: 1px solid var(--border);
+            display: flex; align-items: center; gap: 1.25rem; cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        body.dark-mode .list-item { background: rgba(255,255,255,0.03); }
+        .list-item:hover { transform: scale(1.02); border-color: var(--primary); box-shadow: var(--shadow-soft); }
+        .list-icon { 
+            width: 45px; height: 45px; border-radius: 12px; 
+            display: flex; align-items: center; justify-content: center; 
+            flex-shrink: 0; font-size: 1.2rem;
+        }
+
+        /* Icon Categories */
+        .icon-church { background: rgba(99, 102, 241, 0.1); color: var(--cat-church); }
+        .icon-pharmacy { background: rgba(16, 185, 129, 0.1); color: var(--cat-pharmacy); }
+        .icon-market { background: rgba(245, 158, 11, 0.1); color: var(--cat-market); }
+        .icon-cemetery { background: rgba(71, 85, 105, 0.1); color: var(--cat-cemetery); }
+        .icon-school { background: rgba(236, 72, 153, 0.1); color: var(--cat-school); }
+        .icon-historical { background: rgba(239, 68, 68, 0.1); color: var(--cat-historical); }
+
+        @media (max-width: 768px) {
+            .sidebar { width: calc(100% - 3rem); left: 1.5rem; top: auto; bottom: 1.5rem; max-height: 60vh; }
+            .brand-text h1 { font-size: 1rem; }
+            .layer-btn span { display: none; }
+        }
     </style>
 </head>
-<body>
+<body id="mainBody">
 
-    <div class="loading" id="loading">
-        <i class="fas fa-circle-notch fa-spin fa-3x" style="color: white;"></i>
-        <p style="color: white; margin-top: 15px; font-weight: 500;">LOADING PETA...</p>
+    <!-- ==========================================
+         SECTION: HTML CONTENT
+         ========================================== -->
+    <div class="loader-wrapper" id="pageLoader">
+        <div class="loader-logo"><i class="fas fa-map-location-dot"></i></div>
+        <p style="color: white; margin-top: 1.5rem; font-weight: 800; letter-spacing: 0.4em; font-size: 0.8rem;">MEMUAT TOUNELET DIGITAL</p>
     </div>
 
-    <header class="header">
-        <div style="display: flex; align-items: center; gap: 10px;">
-            <i class="fas fa-map-marked-alt" style="color: var(--accent); font-size: 1.3rem;"></i>
-            <div>
-                <h1 style="font-size: 0.9rem;">Tounelet Map</h1>
-                <p style="font-size: 0.6rem; opacity: 0.7;">Project SIG Ellohim</p>
+    <header class="main-header">
+        <div class="brand">
+            <div class="brand-icon"><i class="fas fa-atlas"></i></div>
+            <div class="brand-text">
+                <h1>Sistem Informasi Persebaran Fasilitas</h1>
+                <p>Desa Tounelet, Langowan Barat</p>
             </div>
         </div>
+        
+        <div class="actions">
+            <div class="layer-switcher" id="mapLayers">
+                <button class="layer-btn active" data-type="hybrid"><i class="fas fa-satellite"></i> <span>Hybrid</span></button>
+                <button class="layer-btn" data-type="street"><i class="fas fa-road"></i> <span>Jalan</span></button>
+                <button class="layer-btn" data-type="dark"><i class="fas fa-moon"></i> <span>Gelap</span></button>
+            </div>
 
-        <div class="btn-group">
-            <audio id="bgMusic" loop><source src="musik/bg-music.mp3" type="audio/mpeg"></audio>
-            <button class="control-btn" id="musicBtn" onclick="toggleMusic()" style="background: #27ae60;">
-                <i class="fas fa-play"></i> <span>Musik</span>
-            </button>
-            <button class="control-btn" onclick="toggleDarkMode()">
-                <i class="fas fa-moon"></i> <span>Mode</span>
-            </button>
+            <button class="icon-btn" id="musicToggle" title="Atmosfer Suasana"><i class="fas fa-volume-mute"></i></button>
+            <button class="icon-btn" id="themeToggle" title="Mode Gelap/Terang"><i class="fas fa-adjust"></i></button>
         </div>
     </header>
 
-    <button id="mobileToggle" onclick="toggleSidebar()">
-        <i class="fas fa-info-circle"></i> Info Desa
-    </button>
-
-    <div class="sidebar" id="sidebar">
-        <div id="weather-widget">
-            <div id="weather-icon"></div>
-            <div id="temp" style="font-size: 1.8rem; font-weight: 700;">--°C</div>
-            <div id="weather-desc" style="font-size: 0.75rem; text-transform: capitalize; opacity: 0.9;">Memuat...</div>
+    <aside class="sidebar" id="sidebar">
+        <div id="dynamicGreeting" style="font-size: 1.5rem; font-weight: 800; background: var(--primary-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 1.5rem;">Memuat...</div>
+        
+        <div class="weather-widget">
+            <div style="display: flex; justify-content: space-between; align-items: center; position: relative; z-index: 2;">
+                <div>
+                    <p id="weatherDate" style="font-weight: 700; opacity: 0.8; font-size: 0.75rem; margin-bottom: 5px;">...</p>
+                    <div style="font-size: 2.5rem; font-weight: 800; line-height: 1;" id="weatherTemp">--°C</div>
+                    <p id="weatherStatus" style="text-transform: capitalize; font-size: 0.85rem; margin-top: 5px; font-weight: 600;">Sedang memuat...</p>
+                </div>
+                <div id="weatherIconUI" style="filter: drop-shadow(0 0 10px rgba(255,255,255,0.5));">
+                    <i class="fas fa-cloud-sun fa-3x"></i>
+                </div>
+            </div>
         </div>
 
-        <h3 style="font-size: 0.9rem; margin-bottom: 8px;">📖 Deskripsi</h3>
-        <p style="font-size: 0.75rem; line-height: 1.5; opacity: 0.9; text-align: justify;">
-            <strong>Desa Tounelet</strong> berdiri sejak 1830. Nama aslinya <i>"TW"</i> (Orang Lewat). 
-            Luas wilayah 2,44 km² dengan potensi padi & cabai yang melimpah.
-        </p>
+        <div class="section-title"><i class="fas fa-play-circle"></i> Media Digital</div>
+        <a href="https://www.youtube.com/watch?v=BUuE0y4f52c" target="_blank" class="video-action-card">
+            <div class="video-play-icon"><i class="fab fa-youtube"></i></div>
+            <div class="video-action-info">
+                <h4>Video Profil Desa</h4>
+                <p>Lihat profil lengkap di YouTube</p>
+            </div>
+            <div style="margin-left: auto; color: #cc0000;"><i class="fas fa-external-link-alt"></i></div>
+        </a>
         
-        <hr style="margin: 15px 0; border: 0; border-top: 1px solid rgba(0,0,0,0.1);">
+        <div class="copyright-container">
+            <p class="copyright-text">PROFIL DESA TOUNELET - KKT 144 UNSRAT</p>
+        </div>
+
+        <div class="section-title" style="margin-top: 1rem;"><i class="fas fa-layer-group"></i> Filter Fasilitas Desa</div>
+        <div class="category-filter-container" id="categoryFilters"></div>
+
+        <div class="section-title"><i class="fas fa-map-pin"></i> Daftar Lokasi Terdata</div>
+        <div id="locationNavigator"></div>
+
+        <div class="identity-card">
+            <div class="identity-avatar">E</div>
+            <div class="identity-info">
+                <h4>Ellohim Milano Kuron</h4>
+                <p>NIM: 241011060053</p>
+            </div>
+            <div style="margin-left: auto; color: white; font-size: 1.5rem;">
+                <i class="fas fa-graduation-cap"></i>
+            </div>
+        </div>
         
-        <p style="font-size: 0.7rem; color: #7f8c8d;">
-            <b>Ellohim Milano Kuron</b><br>
-            241011060053 | SI B UNSRAT
-        </p>
-    </div>
+        <div style="margin-top: 1.5rem; text-align: center; border-top: 1px solid var(--border); padding-top: 1rem;">
+             <p style="font-size: 0.6rem; color: var(--text-muted); font-weight: 800; text-transform: uppercase; letter-spacing: 1px;">Proyek Pemetaan Digital Spasial</p>
+        </div>
+    </aside>
 
     <div id="map"></div>
 
-    <script src="js/leaflet.js"></script>
-    <script src="data/Batas_Wilayah_KelurahanDesa_10K_AR_1.js"></script>
+    <audio id="audioBg" loop preload="auto">
+        <source src="musik/bg-music.mp3" type="audio/mpeg">
+    </audio>
 
-    <script>
-        // 1. Peta Setup
-        var map = L.map('map', { zoomControl: false, tap: false }).setView([1.1495, 124.8430], 14);
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png').addTo(map);
+    <!-- Library Leaflet -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <!-- Script GeoJSON Batas Wilayah -->
+    <script src="data/Batas_Wilayah_KelurahanDesa_10K_AR_1.js" onerror="console.warn('GeoJSON tidak ditemukan.')"></script>
 
-        // 2. Fast Loading
-        function hideLoading() {
-            const loader = document.getElementById('loading');
-            if (loader) { loader.style.opacity = '0'; setTimeout(() => loader.remove(), 500); }
-        }
-        map.whenReady(hideLoading);
-        setTimeout(hideLoading, 3000);
+    <!-- ==========================================
+         SECTION: JAVASCRIPT (LOGIC)
+         ========================================== -->
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js';
+        import { getFirestore, collection, onSnapshot } from 'https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js';
+        import { getAuth, signInAnonymously, signInWithCustomToken } from 'https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js';
 
-        // 3. Data GeoJSON
-        var dataPeta = typeof json_Batas_Wilayah_KelurahanDesa_10K_AR_1 !== 'undefined' ? 
-                       json_Batas_Wilayah_KelurahanDesa_10K_AR_1 : json_Batas_Wilayah_KelurahanDesa_10K_AR_1_0;
-
-        if (dataPeta) {
-            var layer = L.geoJson(dataPeta, {
-                style: { color: '#e41a1c', weight: 2, fillOpacity: 0.2 },
-                onEachFeature: function(f, l) {
-                    l.bindPopup("<b>Wilayah: </b>" + (f.properties.NAMOBJ || "Tounelet"));
-                }
-            }).addTo(map);
-            map.fitBounds(layer.getBounds());
-        }
-
-        // 4. Weather API (Real-time)
-        async function fetchWeather() {
-            const key = "5b3b26832571aacc5fdbc7e6393c2fbe"; 
-            try {
-                const res = await fetch(`https://api.openweathermap.org/data/2.5/weather?lat=1.15&lon=124.84&appid=${key}&units=metric&lang=id`);
-                const data = await res.json();
-                document.getElementById('temp').innerText = Math.round(data.main.temp) + "°C";
-                document.getElementById('weather-desc').innerText = data.weather[0].description;
-                document.getElementById('weather-icon').innerHTML = `<img src="http://openweathermap.org/img/wn/${data.weather[0].icon}@2x.png" width="45">`;
-            } catch (e) { console.log(e); }
-        }
-        fetchWeather();
-
-        // 5. Video Marker
-        var videoIcon = L.divIcon({
-            html: '<i class="fas fa-video fa-2x" style="color: #e67e22; text-shadow: 2px 2px white;"></i>',
-            iconSize: [30, 30]
-        });
-        L.marker([1.1495, 124.8430], {icon: videoIcon}).addTo(map)
-            .bindPopup(`
-                <div style="width: 200px; text-align: center;">
-                    <p style="font-weight: 600; font-size: 0.8rem; margin-bottom: 8px;">Video Profil Desa</p>
-                    <a href="https://youtu.be/BUuE0y4f52c" target="_blank">
-                        <img src="https://i.ytimg.com/vi/BUuE0y4f52c/mqdefault.jpg" style="width:100%; border-radius:8px;">
-                    </a>
-                    <p style="font-size:0.65rem; margin-top:5px;">Klik untuk ke YouTube</p>
-                </div>
-            `);
-
-        // 6. UI Controls
-        function toggleDarkMode() { document.body.classList.toggle('dark-mode'); }
+        let db, auth, appId = typeof __app_id !== 'undefined' ? __app_id : 'tounelet-digital';
         
-        function toggleSidebar() { 
-            const sb = document.getElementById('sidebar');
-            sb.classList.toggle('active');
-            const btn = document.getElementById('mobileToggle');
-            btn.innerHTML = sb.classList.contains('active') ? '<i class="fas fa-times"></i> Tutup' : '<i class="fas fa-info-circle"></i> Info Desa';
+        try {
+            const configStr = typeof __firebase_config !== 'undefined' ? __firebase_config : '{}';
+            const firebaseConfig = JSON.parse(configStr);
+            if (firebaseConfig.apiKey) {
+                const app = initializeApp(firebaseConfig);
+                db = getFirestore(app);
+                auth = getAuth(app);
+            }
+        } catch (e) { console.error("Firebase Initialization Error:", e); }
+
+        const defaultLocations = [
+            { name: "GMIM Sentrum Langowan", cat: "church", coord: [1.15349, 124.84009], desc: "Gereja pusat bersejarah di Langowan." },
+            { name: "GMIM Imanuel Tounelet", cat: "church", coord: [1.15119, 124.8388], desc: "Jemaat lokal Desa Tounelet." },
+            { name: "Apotek Atlanta Farma", cat: "pharmacy", coord: [1.151503, 124.837357], desc: "Penyedia layanan kesehatan & obat-obatan." },
+            { name: "Indomaret Tounelet", cat: "market", coord: [1.151775, 124.837990], desc: "Pusat perbelanjaan kebutuhan harian." },
+            { name: "SMP Negeri 1 Langowan", cat: "school", coord: [1.149260, 124.833992], desc: "Fasilitas Pendidikan Menengah Pertama." },
+            { name: "SMP Negeri 2 Langowan", cat: "school", coord: [1.148080, 124.834491], desc: "Fasilitas Pendidikan Menengah Pertama." },
+            { name: "Pekuburan Umum Desa", cat: "cemetery", coord: [1.149630, 124.837553], desc: "Lokasi pemakaman warga Desa Tounelet." },
+            { name: "Makam Mayor Benyamin T. Sigar", cat: "historical", coord: [1.151341, 124.840674], desc: "Situs bersejarah kakek dari Presiden Prabowo Subianto." },
+            { name: "Gereja Advent Matuari Tounelet", cat: "church", coord: [1.147791, 124.841953], desc: "Gereja Masehi Advent Hari Ketujuh." },
+            { name: "TK Advent Matuari Langowan", cat: "school", coord: [1.147801, 124.841963], desc: "Lembaga Pendidikan Anak Usia Dini." },
+            { name: "SD Negeri 1 Langowan", cat: "school", coord: [1.150145, 124.835650], desc: "Sekolah Dasar Negeri di wilayah Tounelet." },
+            { name: "Gereja BETHANY Langowan", cat: "church", coord: [1.1528, 124.83944], desc: "Jemaat Gereja Bethany Indonesia." },
+            { name: "GGP Tesalonika", cat: "church", coord: [1.1504, 124.83711], desc: "Gereja Gerakan Pentakosta Tesalonika." }
+        ];
+        
+        let cloudLocations = [];
+        let activeCategory = 'all';
+        let map, mapLayers, markerRefs = {}, boundaryLayer = null;
+
+        const catConfig = {
+            all: { label: 'Semua Data', icon: 'fa-globe-asia', color: '#6366f1' },
+            church: { label: 'Rumah Ibadah', icon: 'fa-church', color: '#6366f1', class: 'icon-church' },
+            school: { label: 'Pendidikan', icon: 'fa-graduation-cap', color: '#ec4899', class: 'icon-school' },
+            historical: { label: 'Sejarah', icon: 'fa-landmark', color: '#ef4444', class: 'icon-historical' },
+            pharmacy: { label: 'Kesehatan', icon: 'fa-heart-pulse', color: '#10b981', class: 'icon-pharmacy' },
+            market: { label: 'Ekonomi', icon: 'fa-store', color: '#f59e0b', class: 'icon-market' },
+            cemetery: { label: 'Perkuburan', icon: 'fa-monument', color: '#475569', class: 'icon-cemetery' }
+        };
+
+        function renderCategoryFilters() {
+            const container = document.getElementById('categoryFilters');
+            if (!container) return;
+            container.innerHTML = '';
+            Object.entries(catConfig).forEach(([key, val]) => {
+                const tag = document.createElement('div');
+                tag.className = `cat-tag ${activeCategory === key ? 'active' : ''}`;
+                tag.innerHTML = `<i class="fas ${val.icon}"></i> ${val.label}`;
+                tag.onclick = () => {
+                    activeCategory = key;
+                    renderCategoryFilters();
+                    renderUI();
+                };
+                container.appendChild(tag);
+            });
         }
 
-        function toggleMusic() {
-            var m = document.getElementById("bgMusic");
-            var btn = document.querySelector("#musicBtn");
-            if (m.paused) {
-                m.play().catch(() => alert("Klik layar dulu baru tekan musik."));
-                btn.innerHTML = '<i class="fas fa-volume-up"></i> <span>Mute</span>';
-            } else {
-                m.pause();
-                btn.innerHTML = '<i class="fas fa-play"></i> <span>Musik</span>';
+        function renderUI() {
+            if (!map) return;
+            Object.values(markerRefs).forEach(m => map.removeLayer(m));
+            markerRefs = {};
+            const nav = document.getElementById('locationNavigator');
+            if (nav) nav.innerHTML = '';
+
+            const allLocs = [...defaultLocations, ...cloudLocations];
+            const filteredLocs = activeCategory === 'all' ? allLocs : allLocs.filter(l => l.cat === activeCategory);
+            
+            // Array untuk menampung koordinat guna kalkulasi center/bounds
+            const markerCoords = [];
+
+            filteredLocs.forEach((loc, idx) => {
+                const locId = loc.id || `loc-${idx}`;
+                const cfg = catConfig[loc.cat] || catConfig.historical;
+                markerCoords.push(loc.coord);
+
+                const icon = L.divIcon({
+                    className: 'marker-div',
+                    html: `<div style="background:${cfg.color}; width:32px; height:32px; border-radius:50%; border:3px solid white; display:flex; align-items:center; justify-content:center; color:white; font-size:12px; box-shadow: 0 4px 15px rgba(0,0,0,0.3);"><i class="fas ${cfg.icon}"></i></div>`,
+                    iconSize: [32, 32], iconAnchor: [16, 16]
+                });
+
+                const marker = L.marker(loc.coord, { icon }).addTo(map);
+                marker.bindPopup(`
+                    <div style="font-family:'Plus Jakarta Sans', sans-serif;">
+                        <b style="font-size:0.95rem; display:block; margin-bottom:4px;">${loc.name}</b>
+                        <p style="font-size:0.75rem; color:#64748b; line-height:1.4;">${loc.desc || 'Fasilitas umum desa.'}</p>
+                    </div>
+                `);
+                markerRefs[locId] = marker;
+
+                const div = document.createElement('div');
+                div.className = 'list-item';
+                div.innerHTML = `
+                    <div class="list-icon ${cfg.class || 'icon-historical'}"><i class="fas ${cfg.icon}"></i></div>
+                    <div>
+                        <h5 style="font-size:0.85rem; font-weight:800; color:var(--text-main);">${loc.name}</h5>
+                        <p style="font-size:0.65rem; color:var(--text-muted); font-weight:600;">${cfg.label}</p>
+                    </div>
+                    <div style="margin-left:auto; color:var(--primary); opacity:0.3;"><i class="fas fa-chevron-right"></i></div>
+                `;
+                div.onclick = () => { map.flyTo(loc.coord, 18, { animate: true, duration: 1.5 }); marker.openPopup(); };
+                nav.appendChild(div);
+            });
+
+            // LOGIKA PUSAT TITIK INFRASTRUKTUR
+            // Jika ada filter kategori aktif (bukan 'all'), arahkan peta ke area kumpulan titik tersebut
+            if (markerCoords.length > 0 && activeCategory !== 'all') {
+                const group = new L.featureGroup(Object.values(markerRefs));
+                map.flyToBounds(group.getBounds(), { padding: [80, 80], duration: 1.5 });
+            } else if (activeCategory === 'all' && markerCoords.length > 0) {
+                // Jika "Semua Data", berikan zoom luas ke cluster utama atau panggil ulang boundary fit
+                renderBoundaries();
             }
         }
 
-        L.control.zoom({ position: 'bottomright' }).addTo(map);
+        function renderBoundaries() {
+            if (!map) return;
+            if (boundaryLayer) map.removeLayer(boundaryLayer);
+            
+            const geoJsonData = window.json_Batas_Wilayah_KelurahanDesa_10K_AR_1;
+            
+            if (geoJsonData) {
+                try {
+                    boundaryLayer = L.geoJSON(geoJsonData, {
+                        style: { 
+                            color: '#4f46e5', 
+                            weight: 6, 
+                            fillColor: '#6366f1',
+                            fillOpacity: 0.15, 
+                            dashArray: '10, 10' 
+                        }
+                    }).addTo(map);
+                    
+                    if (activeCategory === 'all') {
+                        map.fitBounds(boundaryLayer.getBounds(), { padding: [50, 50] });
+                    }
+                } catch (e) { 
+                    console.error("GeoJSON Overlay Error:", e); 
+                }
+            }
+        }
+
+        async function startSystem() {
+            if (auth && db) {
+                try {
+                    if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                        await signInWithCustomToken(auth, __initial_auth_token);
+                    } else { await signInAnonymously(auth); }
+
+                    const locCol = collection(db, 'artifacts', appId, 'public', 'data', 'locations');
+                    onSnapshot(locCol, (snapshot) => {
+                        cloudLocations = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                        renderUI();
+                    }, (err) => console.error("Firebase Sync Error:", err));
+                } catch (err) { console.warn("Cloud features limited."); }
+            }
+            renderCategoryFilters();
+            renderUI();
+        }
+
+        function initMap() {
+            if (typeof L === 'undefined') return;
+
+            mapLayers = {
+                hybrid: L.tileLayer('https://{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', { subdomains: ['mt0', 'mt1', 'mt2', 'mt3'] }),
+                street: L.tileLayer('https://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', { subdomains: ['mt0', 'mt1', 'mt2', 'mt3'] }),
+                dark: L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png')
+            };
+
+            // Initial center disesuaikan dengan rata-rata cluster data
+            map = L.map('map', { zoomControl: false, center: [1.1504, 124.8382], zoom: 16, layers: [mapLayers.hybrid] });
+            L.control.zoom({ position: 'bottomright' }).addTo(map);
+            
+            setTimeout(renderBoundaries, 1000);
+
+            document.querySelectorAll('.layer-btn').forEach(btn => {
+                btn.onclick = function() {
+                    document.querySelectorAll('.layer-btn').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    Object.values(mapLayers).forEach(l => map.removeLayer(l));
+                    mapLayers[this.dataset.type].addTo(map);
+                    renderBoundaries(); 
+                }
+            });
+        }
+
+        let audioInit = false;
+        const musicBtn = document.getElementById('musicToggle');
+        const audio = document.getElementById('audioBg');
+
+        musicBtn.onclick = function() {
+            if (!audioInit) { audio.load(); audioInit = true; }
+            if (audio.paused) {
+                audio.play().then(() => {
+                    this.innerHTML = '<i class="fas fa-volume-up"></i>';
+                    this.classList.add('active');
+                }).catch(e => audio.load());
+            } else {
+                audio.pause();
+                this.innerHTML = '<i class="fas fa-volume-mute"></i>';
+                this.classList.remove('active');
+            }
+        };
+
+        document.getElementById('themeToggle').onclick = () => document.body.classList.toggle('dark-mode');
+
+        async function fetchWeather() {
+            try {
+                const res = await fetch(`https://api.openweathermap.org/data/2.5/weather?lat=1.15&lon=124.84&appid=5b3b26832571aacc5fdbc7e6393c2fbe&units=metric&lang=id`);
+                const data = await res.json();
+                document.getElementById('weatherTemp').innerText = Math.round(data.main.temp) + "°C";
+                document.getElementById('weatherStatus').innerText = data.weather[0].description;
+                document.getElementById('weatherDate').innerText = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'short' });
+                document.getElementById('weatherIconUI').innerHTML = `<img src="https://openweathermap.org/img/wn/${data.weather[0].icon}@2x.png" width="60" alt="Weather">`;
+            } catch (e) { document.getElementById('weatherStatus').innerText = "Koneksi Cuaca Offline"; }
+        }
+
+        window.addEventListener('load', () => {
+            initMap();
+            fetchWeather();
+            startSystem();
+            const h = new Date().getHours();
+            const greet = h < 11 ? "Semangat Pagi" : h < 15 ? "Selamat Siang" : h < 18 ? "Selamat Sore" : "Selamat Malam";
+            const greetingEl = document.getElementById('dynamicGreeting');
+            if (greetingEl) greetingEl.innerText = `${greet}!`;
+            setTimeout(() => {
+                const loader = document.getElementById('pageLoader');
+                if (loader) loader.classList.add('fade-out');
+            }, 1200);
+        });
     </script>
 </body>
 </html>
